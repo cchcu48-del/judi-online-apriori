@@ -16,7 +16,7 @@ from telegram.ext import (
 # =========================
 # KONFIGURASI BOT
 # =========================
-BOT_TOKEN = "8265856945:AAGLtpVtH4RVzBTEfTT4ZK_GI8nD2z8FQN0"
+BOT_TOKEN = "8038423070:AAH3shGNsdn_4C0N166rYRWZ8qhbS_uS9hY"
 
 MIN_SUPPORT = 0.30
 MIN_CONFIDENCE = 0.80
