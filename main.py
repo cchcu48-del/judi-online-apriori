@@ -29,7 +29,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-BOT_TOKEN = os.getenv("BOT_TOKEN") or "8304855655:AAGMmOBEt3gcmeDKwC4PEARhTp-Bc8Fl-JQ"
+BOT_TOKEN = os.getenv("BOT_TOKEN") or "7980657967:AAHuu7kfIh8jgaKmf7_sm_XQylSLcVabk-U"
 MIN_SUPPORT_1_4 = 0.30
 MIN_SUPPORT_5 = 0.35
 MIN_CONFIDENCE = 0.80
