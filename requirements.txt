@@ -1,1 +1,3 @@
-python-telegram-bot==20.4
+pandas
+mlxtend
+python-telegram-bot==20.3
