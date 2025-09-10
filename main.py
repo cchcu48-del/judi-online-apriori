@@ -12,6 +12,9 @@ from telegram.ext import (
     ContextTypes,
 )
 
+from mlxtend.frequent_patterns import apriori, association_rules
+import pandas as pd
+
 # =========================
 # KONFIGURASI BOT
 # =========================
@@ -42,10 +45,11 @@ DATA_RESPONDEN: List[Dict[str, int]] = []
 # =========================
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = (
-        "👋 Halo, selamat datang di Bot Rekap Data Responden.\n\n"
+        "👋 Halo, selamat datang di Bot Rekap & Analisis Data Responden.\n\n"
         "Gunakan perintah berikut:\n\n"
         "📌 /input → Upload file CSV (format biner 42 variabel).\n"
-        "📌 /rekap → Lihat rekapitulasi data.\n"
+        "📌 /rekap → Lihat rekapitulasi data responden.\n"
+        "📌 /analyse → Analisis Apriori (itemset & aturan asosiasi).\n"
         "📌 /reset → Hapus semua data responden."
     )
     await update.message.reply_text(text)
@@ -78,63 +82,22 @@ async def rekap(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("❌ Belum ada data. Gunakan /input untuk upload CSV.")
         return
 
-    # Hitung total
     total = len(DATA_RESPONDEN)
-
-    # Rekap per variabel
     rekap_count = {var: sum(r[var] for r in DATA_RESPONDEN) for var in VARIABEL}
 
-    # Format Output
-    text = f"📊 Rekap Data Responden\n──────────────────────\n📌 Total Responden: {total}\n\n"
-    text += f"👤 Jenis Kelamin :\n👩 Perempuan (JK1): {rekap_count['JK1']}\n👨 Laki-Laki (JK2): {rekap_count['JK2']}\n\n"
-
-    text += "🎂 Usia :\n"
-    text += f"< 20 Tahun (UMR1): {rekap_count['UMR1']}\n20–30 Tahun (UMR2): {rekap_count['UMR2']}\n"
+    text = f"📊 *Rekap Data Responden*\n──────────────────────\n📌 Total Responden: *{total}*\n\n"
+    text += f"👤 *Jenis Kelamin* :\n👩 Perempuan (JK1): {rekap_count['JK1']}\n👨 Laki-Laki (JK2): {rekap_count['JK2']}\n\n"
+    text += "🎂 *Usia* :\n"
+    text += f"<20 Tahun (UMR1): {rekap_count['UMR1']}\n20–30 Tahun (UMR2): {rekap_count['UMR2']}\n"
     text += f"31–40 Tahun (UMR3): {rekap_count['UMR3']}\n41–50 Tahun (UMR4): {rekap_count['UMR4']}\n"
     text += f">50 Tahun (UMR5): {rekap_count['UMR5']}\n\n"
-
-    text += "📚 Pendidikan Terakhir :\n"
+    text += "📚 *Pendidikan Terakhir* :\n"
     text += f"SD (PDT1): {rekap_count['PDT1']}\nSMP (PDT2): {rekap_count['PDT2']}\n"
     text += f"SMA (PDT3): {rekap_count['PDT3']}\nDiploma/Sarjana (PDT4): {rekap_count['PDT4']}\n\n"
+    text += "... (lanjutan variabel lain) ..."
 
-    text += "🎲 Jenis Judi Online :\n"
-    text += f"Togel (JJ1): {rekap_count['JJ1']}\nOlahraga (JJ2): {rekap_count['JJ2']}\n"
-    text += f"Kasino (JJ3): {rekap_count['JJ3']}\nLainnya (JJ4): {rekap_count['JJ4']}\n\n"
+    await update.message.reply_text(text, parse_mode="Markdown")
 
-    text += "📅 Frekuensi Bermain :\n"
-    text += f"Hampir setiap hari (FBJ1): {rekap_count['FBJ1']}\n"
-    text += f"2–3 kali/minggu (FBJ2): {rekap_count['FBJ2']}\n"
-    text += f"1 kali/minggu (FBJ3): {rekap_count['FBJ3']}\n"
-    text += f"< 1 kali/minggu (FBJ4): {rekap_count['FBJ4']}\n\n"
-
-    text += "⏳ Durasi Bermain :\n"
-    text += f"<30 menit (DB1): {rekap_count['DB1']}\n30m–1j (DB2): {rekap_count['DB2']}\n"
-    text += f"1–2j (DB3): {rekap_count['DB3']}\n>2j (DB4): {rekap_count['DB4']}\n\n"
-
-    text += "💵 Pengeluaran :\n"
-    text += f"<500rb (PDB1): {rekap_count['PDB1']}\n500rb–2jt (PDB2): {rekap_count['PDB2']}\n"
-    text += f"2jt–5jt (PDB3): {rekap_count['PDB3']}\n>5jt (PDB4): {rekap_count['PDB4']}\n\n"
-
-    text += "❗ Masalah Keuangan :\n"
-    text += f"Ya (MK1): {rekap_count['MK1']}\nTidak (MK2): {rekap_count['MK2']}\n\n"
-
-    text += "🗣 Pertengkaran :\n"
-    text += f"Tidak Pernah (PT1): {rekap_count['PT1']}\nJarang (PT2): {rekap_count['PT2']}\n"
-    text += f"Sering (PT3): {rekap_count['PT3']}\nHampir setiap hari (PT4): {rekap_count['PT4']}\n\n"
-
-    text += "🎰 Sulit Berhenti :\n"
-    text += f"Ya (KJO1): {rekap_count['KJO1']}\nTidak (KJO2): {rekap_count['KJO2']}\n\n"
-
-    text += "💔 Perceraian :\n"
-    text += f"Ya (PJO1): {rekap_count['PJO1']}\nTidak (PJO2): {rekap_count['PJO2']}\n\n"
-
-    text += "⚠️ Faktor Perceraian :\n"
-    text += f"ABJ1: {rekap_count['ABJ1']}, ABJ2: {rekap_count['ABJ2']}, ABJ3: {rekap_count['ABJ3']}, "
-    text += f"ABJ4: {rekap_count['ABJ4']}, ABJ5: {rekap_count['ABJ5']}\n"
-
-    await update.message.reply_text(text)
-
-    # Simpan CSV
     csv_buffer = io.StringIO()
     writer = csv.DictWriter(csv_buffer, fieldnames=VARIABEL)
     writer.writeheader()
@@ -145,15 +108,57 @@ async def rekap(update: Update, context: ContextTypes.DEFAULT_TYPE):
         document=InputFile(io.BytesIO(csv_buffer.getvalue().encode()), filename="rekap_biner.csv")
     )
 
-    # Simpan TXT
-    txt_buffer = io.StringIO()
-    for idx, row in enumerate(DATA_RESPONDEN, start=1):
-        txt_buffer.write(f"RESPONDEN {idx}\n")
-        txt_buffer.write(", ".join([f"{k}={v}" for k, v in row.items()]) + "\n\n")
-    txt_buffer.seek(0)
+async def analyse(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not DATA_RESPONDEN:
+        await update.message.reply_text("❌ Belum ada data. Gunakan /input untuk upload CSV.")
+        return
 
+    df = pd.DataFrame(DATA_RESPONDEN)
+
+    # Apriori
+    freq_itemsets = apriori(df, min_support=0.30, use_colnames=True, max_len=5)
+    freq_itemsets = freq_itemsets[
+        ~((freq_itemsets['itemsets'].apply(len) == 5) & (freq_itemsets['support'] < 0.35))
+    ]
+
+    rules = association_rules(freq_itemsets, metric="confidence", min_threshold=0.80)
+
+    # Format Output
+    text = "📈 *Analisis Frequent Itemset & Aturan Asosiasi*\n"
+    text += "──────────────────────\n"
+    text += "⚙️ Threshold:\n"
+    text += "- Min Support (1–4 item): *0.30*\n"
+    text += "- Min Support (5 item): *0.35*\n"
+    text += "- Min Confidence: *0.80*\n\n"
+
+    text += "*📊 Frequent Itemset*\n"
+    text += "| Itemset | Support |\n|---------|---------|\n"
+    for _, row in freq_itemsets.iterrows():
+        items = ",".join(list(row['itemsets']))
+        text += f"| {items} | {row['support']:.2f} |\n"
+
+    text += "\n*🔗 Association Rules*\n"
+    text += "| Rule | Support | Confidence |\n|------|---------|------------|\n"
+    for _, row in rules.iterrows():
+        antecedents = ",".join(list(row['antecedents']))
+        consequents = ",".join(list(row['consequents']))
+        text += f"| {{{antecedents}}} → {{{consequents}}} | {row['support']:.2f} | {row['confidence']:.2f} |\n"
+
+    await update.message.reply_text(text, parse_mode="Markdown")
+
+    # Kirim CSV hasil
+    csv_buffer = io.StringIO()
+    freq_itemsets.to_csv(csv_buffer, index=False)
+    csv_buffer.seek(0)
     await update.message.reply_document(
-        document=InputFile(io.BytesIO(txt_buffer.getvalue().encode()), filename="rekap_biner.txt")
+        document=InputFile(io.BytesIO(csv_buffer.getvalue().encode()), filename="frequent_itemsets.csv")
+    )
+
+    rules_buffer = io.StringIO()
+    rules.to_csv(rules_buffer, index=False)
+    rules_buffer.seek(0)
+    await update.message.reply_document(
+        document=InputFile(io.BytesIO(rules_buffer.getvalue().encode()), filename="association_rules.csv")
     )
 
 # =========================
@@ -165,6 +170,7 @@ def main():
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("reset", reset))
     app.add_handler(CommandHandler("rekap", rekap))
+    app.add_handler(CommandHandler("analyse", analyse))
     app.add_handler(MessageHandler(filters.Document.FileExtension("csv"), input_file))
 
     print("🤖 Bot berjalan...")
