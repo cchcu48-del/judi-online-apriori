@@ -115,7 +115,6 @@ async def rekap(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text += f"<30 menit (DB1): {rekap_count['DB1']}\n30m–1j (DB2): {rekap_count['DB2']}\n"
     text += f"1–2j (DB3): {rekap_count['DB3']}\n>2j (DB4): {rekap_count['DB4']}\n\n"
 
-~, [11/09/2025 1:10]
 text += "💵 Pengeluaran :\n"
     text += f"<500rb (PDB1): {rekap_count['PDB1']}\n500rb–2jt (PDB2): {rekap_count['PDB2']}\n"
     text += f"2jt–5jt (PDB3): {rekap_count['PDB3']}\n>5jt (PDB4): {rekap_count['PDB4']}\n\n"
